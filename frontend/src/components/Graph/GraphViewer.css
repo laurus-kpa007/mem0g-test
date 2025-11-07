@@ -1,0 +1,116 @@
+.graph-viewer {
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  padding: 2rem;
+}
+
+.graph-header h2 {
+  margin: 0 0 0.5rem 0;
+  color: #333;
+}
+
+.graph-header p {
+  margin: 0;
+  color: #666;
+}
+
+.graph-controls {
+  display: flex;
+  gap: 1rem;
+  margin: 2rem 0;
+}
+
+.graph-controls input {
+  flex: 1;
+  padding: 0.75rem;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 1rem;
+}
+
+.graph-controls button {
+  padding: 0.75rem 2rem;
+  background: #667eea;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.graph-controls button:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.graph-stats {
+  display: flex;
+  gap: 1rem;
+  margin: 2rem 0;
+}
+
+.stat-card {
+  flex: 1;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 10px;
+  text-align: center;
+}
+
+.stat-value {
+  font-size: 2.5rem;
+  font-weight: bold;
+}
+
+.stat-label {
+  font-size: 1rem;
+  opacity: 0.9;
+  margin-top: 0.5rem;
+}
+
+.graph-container {
+  min-height: 400px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 2rem;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 4rem 1rem;
+  color: #999;
+}
+
+.node-list {
+}
+
+.node-list h3 {
+  margin: 0 0 1rem 0;
+  color: #333;
+}
+
+.node-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background: white;
+  border-radius: 8px;
+  margin-bottom: 0.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.node-name {
+  font-weight: 500;
+  color: #333;
+}
+
+.node-type {
+  padding: 0.25rem 0.75rem;
+  background: #667eea;
+  color: white;
+  border-radius: 12px;
+  font-size: 0.85rem;
+}
