@@ -31,9 +31,40 @@ Mem0의 그래프 메모리 기능을 완전히 활용하는 대화형 테스트
 
 ## 빠른 시작
 
+### 🔴 중요: 외부 Ollama 서버 사용
+
+이 프로젝트는 **별도 PC에서 실행 중인 Ollama 서버**를 사용합니다.
+
+#### 외부 Ollama 서버 설정
+
+1. **Ollama 서버 PC에서 모델 다운로드**
+   ```bash
+   ollama pull qwen2.5:7b
+   ollama pull bge-m3
+   ollama list  # 확인
+   ```
+
+2. **.env 파일에 Ollama 서버 IP 설정**
+   ```bash
+   # .env 파일 생성
+   cp .env.example .env
+
+   # Ollama 서버 IP 수정 (예: 192.168.1.100)
+   nano .env
+   ```
+
+   ```env
+   OLLAMA_BASE_URL=http://192.168.1.100:11434
+   ```
+
+**상세 가이드**: [EXTERNAL_OLLAMA.md](./EXTERNAL_OLLAMA.md) 참조
+
+---
+
 ### 1. 사전 요구사항
 
 - Docker & Docker Compose
+- **외부 PC에 Ollama 설치 및 모델 다운로드 완료**
 - Python 3.13 (로컬 개발 시)
 - Node.js 20+ (프론트엔드 개발 시)
 
@@ -43,8 +74,9 @@ Mem0의 그래프 메모리 기능을 완전히 활용하는 대화형 테스트
 # .env 파일 생성
 cp .env.example .env
 
-# 필요시 설정 수정
+# Ollama 서버 IP 주소 수정 (필수!)
 nano .env
+# OLLAMA_BASE_URL=http://YOUR_OLLAMA_SERVER_IP:11434
 ```
 
 ### 3. Docker Compose로 실행
@@ -64,21 +96,14 @@ docker-compose logs -f
 - **Neo4j Browser**: http://localhost:7474
 - **Qdrant Dashboard**: http://localhost:6333/dashboard
 
-### 4. Ollama 모델 다운로드
+### 4. 연결 확인
 
 ```bash
-# Ollama 컨테이너에 접속
-docker exec -it mem0g-ollama bash
+# 백엔드 헬스체크
+curl http://localhost:8000/api/admin/health
 
-# 모델 다운로드
-ollama pull qwen2.5:7b
-ollama pull bge-m3
-
-# 확인
-ollama list
-
-# 컨테이너 나가기
-exit
+# Ollama 연결 확인
+curl http://localhost:8000/api/admin/config
 ```
 
 ### 5. 사용 방법
