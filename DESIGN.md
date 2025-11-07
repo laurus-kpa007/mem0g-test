@@ -125,10 +125,114 @@ sequenceDiagram
 |---------|------|------|
 | **Framework** | FastAPI | REST API 서버 |
 | **Memory** | Mem0 (0.1.0+) | 그래프 메모리 관리 |
-| **LLM** | Ollama | 로컬 언어모델 (llama3, mistral, qwen2 등) |
+| **LLM** | Ollama | 로컬 언어모델 서버 |
+| **LLM Model** | Llama 3.1 (8B) / Qwen2.5 (7B) | 엔티티/관계 추출, 응답 생성 |
 | **Graph DB** | Neo4j / Kuzu | 엔티티-관계 저장 |
 | **Vector DB** | Qdrant / Chroma | 임베딩 벡터 저장 |
 | **Embedding** | Sentence-Transformers | 텍스트 임베딩 생성 |
+
+### 권장 LLM 모델
+
+#### 🥇 1순위: Llama 3.1 / 3.2
+```bash
+# 가볍고 빠른 버전 (RAM 8GB+)
+ollama pull llama3.2:3b
+
+# 정확도 우선 버전 (RAM 16GB+)
+ollama pull llama3.1:8b
+```
+
+**선택 이유**:
+- ✅ Instruction-following 능력 우수 (구조화된 출력에 중요)
+- ✅ Mem0 공식 테스트에서 검증됨
+- ✅ 안정적이고 널리 사용됨
+- ✅ 한국어 지원 양호
+
+**추천 대상**: 대부분의 사용 케이스, 처음 시작하는 경우
+
+---
+
+#### 🥈 2순위: Qwen2.5
+```bash
+# 균형잡힌 선택 (RAM 16GB+)
+ollama pull qwen2.5:7b
+
+# 고성능 버전 (RAM 32GB+)
+ollama pull qwen2.5:14b
+```
+
+**선택 이유**:
+- ✅ **한국어 성능 최고 수준**
+- ✅ 다국어 지원 우수 (한중일영)
+- ✅ 최신 모델 (2024)
+- ✅ 코드 이해 능력 뛰어남
+
+**추천 대상**: 한국어 대화가 주된 경우, 다국어 지원 필요시
+
+---
+
+#### 🥉 3순위: Gemma 2 / Phi-3
+```bash
+# Google의 최신 모델 (RAM 16GB+)
+ollama pull gemma2:9b
+
+# Microsoft의 효율적인 모델 (RAM 8GB+)
+ollama pull phi3:3.8b
+```
+
+**선택 이유**:
+- ✅ 최신 아키텍처
+- ✅ 작은 크기 대비 뛰어난 성능
+- ✅ 빠른 추론 속도
+
+**추천 대상**: 하드웨어 제약이 있거나 빠른 응답이 필요한 경우
+
+---
+
+#### 📊 모델 비교표
+
+| 모델 | 크기 | RAM 요구량 | 한국어 | 속도 | 정확도 | 추천 용도 |
+|------|------|-----------|--------|------|--------|----------|
+| **llama3.2:3b** | 3B | 8GB | ⭐⭐⭐ | ⚡⚡⚡⚡ | ⭐⭐⭐ | 빠른 테스트 |
+| **llama3.1:8b** | 8B | 16GB | ⭐⭐⭐⭐ | ⚡⚡⚡ | ⭐⭐⭐⭐ | **기본 권장** |
+| **qwen2.5:7b** | 7B | 16GB | ⭐⭐⭐⭐⭐ | ⚡⚡⚡ | ⭐⭐⭐⭐ | **한국어 최적** |
+| **qwen2.5:14b** | 14B | 32GB | ⭐⭐⭐⭐⭐ | ⚡⚡ | ⭐⭐⭐⭐⭐ | 고성능 |
+| **gemma2:9b** | 9B | 16GB | ⭐⭐⭐ | ⚡⚡⚡ | ⭐⭐⭐⭐ | 최신 기술 |
+| **phi3:3.8b** | 3.8B | 8GB | ⭐⭐⭐ | ⚡⚡⚡⚡ | ⭐⭐⭐ | 효율성 |
+
+---
+
+#### 💡 최종 권장
+
+**일반적인 경우**:
+```python
+config = {
+    "llm": {
+        "provider": "ollama",
+        "config": {
+            "model": "llama3.1:8b",  # 또는 "qwen2.5:7b"
+            "base_url": "http://localhost:11434",
+            "temperature": 0.1,
+            "max_tokens": 2000
+        }
+    }
+}
+```
+
+**한국어 중심인 경우**:
+```python
+config = {
+    "llm": {
+        "provider": "ollama",
+        "config": {
+            "model": "qwen2.5:7b",  # 한국어 최적화
+            "base_url": "http://localhost:11434",
+            "temperature": 0.1,
+            "max_tokens": 2000
+        }
+    }
+}
+```
 
 ### Frontend
 | 카테고리 | 기술 | 용도 |
