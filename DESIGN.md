@@ -126,10 +126,10 @@ sequenceDiagram
 | **Framework** | FastAPI | REST API 서버 |
 | **Memory** | Mem0 (0.1.0+) | 그래프 메모리 관리 |
 | **LLM** | Ollama | 로컬 언어모델 서버 |
-| **LLM Model** | Llama 3.1 (8B) / Qwen2.5 (7B) | 엔티티/관계 추출, 응답 생성 |
+| **LLM Model** | Qwen2.5 (7B) - 한국어 최적화 | 엔티티/관계 추출, 응답 생성 |
+| **Embedding Model** | BGE-M3 (Ollama) - 한국어 우수 | 텍스트 임베딩 생성 |
 | **Graph DB** | Neo4j / Kuzu | 엔티티-관계 저장 |
 | **Vector DB** | Qdrant / Chroma | 임베딩 벡터 저장 |
-| **Embedding** | Sentence-Transformers | 텍스트 임베딩 생성 |
 
 ### 권장 LLM 모델
 
@@ -202,7 +202,7 @@ ollama pull phi3:3.8b
 
 ---
 
-#### 💡 최종 권장
+#### 💡 최종 권장 설정
 
 **일반적인 경우**:
 ```python
@@ -215,24 +215,201 @@ config = {
             "temperature": 0.1,
             "max_tokens": 2000
         }
+    },
+    "embedder": {
+        "provider": "ollama",
+        "config": {
+            "model": "nomic-embed-text"
+        }
     }
 }
 ```
 
-**한국어 중심인 경우**:
+**🇰🇷 한국어 완전 최적화 (프로젝트 기본 설정)**:
 ```python
 config = {
     "llm": {
         "provider": "ollama",
         "config": {
-            "model": "qwen2.5:7b",  # 한국어 최적화
+            "model": "qwen2.5:7b",  # 한국어 최고 성능
             "base_url": "http://localhost:11434",
             "temperature": 0.1,
             "max_tokens": 2000
         }
+    },
+    "embedder": {
+        "provider": "ollama",
+        "config": {
+            "model": "bge-m3"  # 한국어 임베딩 우수
+        }
+    },
+    "vector_store": {
+        "provider": "qdrant",
+        "config": {
+            "host": "localhost",
+            "port": 6333,
+            "collection_name": "mem0g_korean"
+        }
+    },
+    "graph_store": {
+        "provider": "neo4j",
+        "config": {
+            "url": "neo4j://localhost:7687",
+            "username": "neo4j",
+            "password": "password",
+            "database": "neo4j"
+        }
     }
 }
 ```
+
+**필요한 모델 다운로드**:
+```bash
+# 메인 LLM (한국어 최적화)
+ollama pull qwen2.5:7b
+
+# 임베딩 모델 (한국어 지원 우수)
+ollama pull bge-m3
+```
+
+---
+
+### 권장 임베딩 모델 (Embedding Models)
+
+Mem0g는 벡터 유사도 검색을 위해 임베딩 모델이 필요합니다. 한국어 지원이 우수한 모델들을 소개합니다.
+
+#### 🥇 1순위: BGE-M3 (추천!) ⭐
+```bash
+ollama pull bge-m3
+```
+
+```python
+config = {
+    "embedder": {
+        "provider": "ollama",
+        "config": {
+            "model": "bge-m3"
+        }
+    }
+}
+```
+
+**선택 이유**:
+- ✅ **한국어 성능 매우 우수**
+- ✅ Ollama 네이티브 지원 (완전 로컬 실행)
+- ✅ 100개 이상 언어 지원
+- ✅ 1024 차원 벡터
+- ✅ MTEB 벤치마크 상위권
+- ✅ 멀티링구얼 최적화
+
+**추천 대상**: **프로젝트 기본 설정으로 강력 추천**
+
+---
+
+#### 🥈 2순위: Nomic Embed Text
+```bash
+ollama pull nomic-embed-text
+```
+
+```python
+config = {
+    "embedder": {
+        "provider": "ollama",
+        "config": {
+            "model": "nomic-embed-text"
+        }
+    }
+}
+```
+
+**선택 이유**:
+- ✅ 한국어 지원 양호
+- ✅ Ollama 네이티브 지원
+- ✅ 빠른 추론 속도
+- ✅ 768 차원 벡터
+- ✅ 경량 모델
+
+**추천 대상**: 빠른 응답이 중요한 경우
+
+---
+
+#### 🥉 3순위: MXBAI Embed Large
+```bash
+ollama pull mxbai-embed-large
+```
+
+```python
+config = {
+    "embedder": {
+        "provider": "ollama",
+        "config": {
+            "model": "mxbai-embed-large"
+        }
+    }
+}
+```
+
+**선택 이유**:
+- ✅ 다국어 지원
+- ✅ Ollama 네이티브 지원
+- ✅ 1GB 크기
+- ✅ 1024 차원 벡터
+
+**추천 대상**: 균형잡힌 선택
+
+---
+
+#### 📊 임베딩 모델 비교표
+
+| 모델 | 차원 | 크기 | 한국어 | 속도 | 정확도 | Ollama 지원 |
+|------|------|------|--------|------|--------|-------------|
+| **bge-m3** | 1024 | ~2.2GB | ⭐⭐⭐⭐⭐ | ⚡⚡⚡ | ⭐⭐⭐⭐⭐ | ✅ |
+| **nomic-embed-text** | 768 | ~274MB | ⭐⭐⭐⭐ | ⚡⚡⚡⚡ | ⭐⭐⭐⭐ | ✅ |
+| **mxbai-embed-large** | 1024 | ~1GB | ⭐⭐⭐ | ⚡⚡⚡ | ⭐⭐⭐⭐ | ✅ |
+| **jhgan/ko-sbert** | 768 | ~500MB | ⭐⭐⭐⭐⭐ | ⚡⚡⚡⭐ | ⭐⭐⭐⭐⭐ | ❌ (HuggingFace) |
+
+---
+
+#### 💡 한국어 특화 대안 (HuggingFace)
+
+Ollama를 사용할 수 없는 경우, HuggingFace 모델을 직접 사용할 수 있습니다:
+
+```python
+config = {
+    "embedder": {
+        "provider": "huggingface",
+        "config": {
+            "model": "jhgan/ko-sbert-multitask"  # 한국어 최고
+        }
+    }
+}
+```
+
+**한국어 특화 모델**:
+- `jhgan/ko-sbert-multitask` - 한국어 SBERT, 가장 높은 한국어 성능
+- `BM-K/KoSimCSE-roberta` - 한국어 SimCSE
+- `dragonkue/BGE-m3-korean` - BGE-M3 한국어 파인튜닝
+
+**단점**: HuggingFace 의존성 추가, Ollama만큼 통합이 간편하지 않음
+
+---
+
+#### 🎯 프로젝트 최종 권장 조합
+
+**완전 로컬 + 한국어 최적화**:
+```bash
+# 다운로드
+ollama pull qwen2.5:7b    # 메인 LLM
+ollama pull bge-m3        # 임베딩 모델
+```
+
+이 조합은:
+- ✅ 완전한 로컬 실행 (인터넷 불필요)
+- ✅ 한국어 성능 최고 수준
+- ✅ Mem0와 완벽한 호환성
+- ✅ 통합 간편함
+
+---
 
 ### Frontend
 | 카테고리 | 기술 | 용도 |
@@ -467,9 +644,9 @@ flowchart TB
 
     subgraph "Processing Layer"
         PRE[전처리]
-        LLM_ENT[엔티티 추출<br/>Ollama]
-        LLM_REL[관계 추출<br/>Ollama]
-        EMB_GEN[임베딩 생성<br/>Sentence-Transformers]
+        LLM_ENT[엔티티 추출<br/>Ollama Qwen2.5]
+        LLM_REL[관계 추출<br/>Ollama Qwen2.5]
+        EMB_GEN[임베딩 생성<br/>Ollama BGE-M3]
     end
 
     subgraph "Storage Layer"
@@ -696,23 +873,25 @@ test_scenarios = [
 
 ## 설정 예시
 
-### Mem0 Graph Memory 설정
+### Mem0 Graph Memory 설정 (한국어 최적화)
 
 ```python
+# 프로덕션 설정 - 한국어 완전 최적화
 config = {
     "llm": {
         "provider": "ollama",
         "config": {
-            "model": "llama3:8b",
+            "model": "qwen2.5:7b",  # 한국어 최고 성능
             "base_url": "http://localhost:11434",
-            "temperature": 0.1,
-            "max_tokens": 2000
+            "temperature": 0.1,      # 엔티티 추출은 낮은 temperature 권장
+            "max_tokens": 2000,
+            "num_ctx": 8192         # 컨텍스트 윈도우
         }
     },
     "embedder": {
-        "provider": "sentence_transformers",
+        "provider": "ollama",
         "config": {
-            "model": "all-MiniLM-L6-v2"
+            "model": "bge-m3"        # 한국어 임베딩 우수
         }
     },
     "vector_store": {
@@ -720,16 +899,55 @@ config = {
         "config": {
             "host": "localhost",
             "port": 6333,
-            "collection_name": "mem0g_vectors"
+            "collection_name": "mem0g_korean",
+            "embedding_dim": 1024    # bge-m3의 차원
         }
     },
     "graph_store": {
-        "provider": "neo4j",  # 또는 "kuzu"
+        "provider": "neo4j",         # 또는 "kuzu"
         "config": {
             "url": "neo4j://localhost:7687",
             "username": "neo4j",
             "password": "password",
             "database": "neo4j"
+        }
+    },
+    "version": "v1.1"
+}
+```
+
+### 대안 설정 (Kuzu 사용)
+
+```python
+# Kuzu는 설치 없이 파일 기반으로 작동
+config = {
+    "llm": {
+        "provider": "ollama",
+        "config": {
+            "model": "qwen2.5:7b",
+            "base_url": "http://localhost:11434",
+            "temperature": 0.1,
+            "max_tokens": 2000
+        }
+    },
+    "embedder": {
+        "provider": "ollama",
+        "config": {
+            "model": "bge-m3"
+        }
+    },
+    "vector_store": {
+        "provider": "qdrant",
+        "config": {
+            "host": "localhost",
+            "port": 6333,
+            "collection_name": "mem0g_korean"
+        }
+    },
+    "graph_store": {
+        "provider": "kuzu",
+        "config": {
+            "db_path": "./data/mem0g.kuzu"  # 로컬 파일 경로
         }
     },
     "version": "v1.1"
