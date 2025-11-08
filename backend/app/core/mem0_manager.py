@@ -91,8 +91,15 @@ class Mem0Manager:
                 limit=limit
             )
 
-            logger.success(f"메모리 검색 완료: {len(results)}개 결과")
-            return results
+            # Mem0 결과 포맷 처리 (dict 또는 list 가능)
+            memories_list = []
+            if isinstance(results, dict):
+                memories_list = results.get('results', [])
+            elif isinstance(results, list):
+                memories_list = results
+
+            logger.success(f"메모리 검색 완료: {len(memories_list)}개 결과")
+            return memories_list
 
         except Exception as e:
             logger.error(f"메모리 검색 실패: {e}")
@@ -121,12 +128,18 @@ class Mem0Manager:
                 user_id=user_id
             )
 
-            # limit 적용
-            if isinstance(results, list):
-                results = results[:limit]
+            # Mem0 결과 포맷 처리 (dict 또는 list 가능)
+            memories_list = []
+            if isinstance(results, dict):
+                memories_list = results.get('results', [])
+            elif isinstance(results, list):
+                memories_list = results
 
-            logger.success(f"메모리 조회 완료: {len(results)}개")
-            return results
+            # limit 적용
+            memories_list = memories_list[:limit]
+
+            logger.success(f"메모리 조회 완료: {len(memories_list)}개")
+            return memories_list
 
         except Exception as e:
             logger.error(f"메모리 조회 실패: {e}")
@@ -177,6 +190,75 @@ class Mem0Manager:
         except Exception as e:
             logger.error(f"메모리 삭제 실패: {e}")
             raise
+
+    def generate_response(
+        self,
+        message: str,
+        user_id: str,
+        memories: List[Dict[str, Any]]
+    ) -> str:
+        """
+        LLM으로 대화형 응답 생성
+
+        Args:
+            message: 사용자 메시지
+            user_id: 사용자 ID
+            memories: 관련 메모리 리스트
+
+        Returns:
+            LLM 응답
+        """
+        try:
+            logger.info(f"LLM 응답 생성 중 - User: {user_id}")
+
+            # 메모리 컨텍스트 구성
+            context = ""
+            if memories:
+                context = "관련 기억:\n"
+                for mem in memories[:3]:  # 최대 3개만 사용
+                    memory_text = mem.get('memory', '')
+                    context += f"- {memory_text}\n"
+                context += "\n"
+
+            # 프롬프트 구성
+            prompt = f"""You are a friendly Korean assistant. Always respond in Korean.
+
+{context}User message: {message}
+
+Please respond naturally and kindly in Korean language only."""
+
+            # Ollama를 통해 LLM 응답 생성
+            import requests
+            # LLM 전용 URL 사용
+            llm_url = settings.ollama_base_url if settings.ollama_base_url else settings.ollama_llm_url
+            ollama_url = f"{llm_url}/api/generate"
+
+            response = requests.post(
+                ollama_url,
+                json={
+                    "model": settings.ollama_llm_model,
+                    "prompt": prompt,
+                    "stream": False,
+                    "options": {
+                        "temperature": 0.7,
+                        "top_p": 0.9
+                    }
+                },
+                timeout=30
+            )
+
+            if response.status_code == 200:
+                result = response.json()
+                llm_response = result.get('response', '').strip()
+                logger.success(f"LLM 응답 생성 완료: {llm_response[:50]}...")
+                return llm_response
+            else:
+                logger.error(f"Ollama 응답 실패: {response.status_code}")
+                return "죄송합니다. 응답을 생성하는 데 문제가 발생했습니다."
+
+        except Exception as e:
+            logger.error(f"LLM 응답 생성 실패: {e}")
+            return f"죄송합니다. 응답을 생성할 수 없습니다: {str(e)}"
 
     def get_graph_stats(self, user_id: Optional[str] = None) -> Dict[str, Any]:
         """
